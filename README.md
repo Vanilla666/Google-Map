@@ -18,4 +18,4 @@ Geolocation API 去調用經緯度，在調用時會有個物件當參數，請�
 zoom:17  縮放區域  數字越大縮放越大 0~21 (必要參數)   center:new google.maps.LatLng(x,y),  經緯度 (必要參數)<br/>
 當然還可以調用其他key:value 但是先不做介紹 </br>
 做好以上調整後即可畫出GoogleMap</br>
-<h4>紅色箭頭的樣式<h4>
+<h4>紅色箭頭的樣式</h4>
