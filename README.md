@@ -19,3 +19,8 @@ zoom:17  縮放區域  數字越大縮放越大 0~21 (必要參數)   center:new
 當然還可以調用其他key:value 但是先不做介紹 </br>
 做好以上調整後即可畫出GoogleMap</br>
 <h4>紅色箭頭的樣式</h4>
+需創建物件 marker = new google.maps.Marker 當作紅色箭頭的物件</br>
+裡面有需多key:value可以調整 重要的是position可以指定箭頭要擺放的位置 還有map是只要畫在哪個GoogleMap </br>
+icon 則是可以換紅色箭頭的樣式</br>
+<h4>功能:覆寫</h4>
+按下後重新讀取頁面 = onload
