@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+    @media screen and (max-width: 640px) { /*  X<640 手機尺寸 */
+        .Loation{
+            background: rgb(216, 243, 120);
+            width: 100%;
+            height:auto;
+            font-size:16px;  /* 文字大小 */
+        }
+        .googleMap{
+            width: 100%;
+            height:auto;
+        }
+    }
+    @media screen and (min-width: 641px) and (max-width: 980px) { /*  641<X<980 平板尺寸 */
+        .Loation{
+            background: rgb(67, 223, 106);
+            width: 100%;
+            height:auto;
+            font-size:20px;  /* 文字大小 */
+        }
+        .googleMap{
+            width: 100%;
+            height:auto;
+        }
+   
+    }
+
+    @media screen and (min-width: 981px) and (max-width: 1920px) { /*  981<X<1920 電腦尺寸 */
+        .Loation{
+            background: rgb(125, 201, 245);
+            width: 100%;
+            height:auto;
+            font-size:24px; /* 文字大小 */
+        }
+        .googleMap{
+            width: 100%;
+            height:auto;
+        }
+   
+    }
+       /* .Loation{
+             background: rgb(67, 111, 148); 
+             width: 60%; 
+             height:auto; 
+        } */
+    </style>
+    <title>經緯度+google Map</title>
+  </head>
+  <body onload="getLocation()"> <!-- 顯示位置 -->
+
+    <div class="Loation">
+        <p id="latitude">經度:</p>
+        <p id="longitude">緯度:</p>
+        <p id="accuracy">誤差:</p>
+        <p id="error"></p>
+    </div>
+    <!-- <button onclick="getLocation()">Try It</button> -->
+        <button onclick="initMap()">多點標記</button>
+        <button id="Reset" onload="index.html">覆寫</button> <!-- reset 重覆再讀取地圖 -->
+        <button id="Draw" >畫圖形</button> <!-- 畫圖形要判斷是否在一中裡 -->
+        <button id="Star"  >每15S偵測</button>
+        <button id="Stop" >停止偵測</button>
+    <div class="googleMap" id="googleMap" style="width:100%;height:400px;"></div> <!--  google 地圖 -->
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script>
+    var latitude = document.getElementById("latitude"); // 經度ID
+    var longitude = document.getElementById("longitude"); //緯度ID
+    var accuracy =document.getElementById("accuracy");
+    var NowLatitude;  //現在經度
+    var NowLongitude; //現在緯度
+    var TimeMap; //定時更新地圖
+    document.getElementById("Star").addEventListener("click",TimeMap); //Reset 函數重新讀取頁面
+    function TimeMap(){
+        TimeMap =  setInterval(getLocation,15000); //開始每15秒更新
+        alert("現在每15秒開始定時更新位置");
+    }
+        function getLocation() { // 現在的位置
+
+    if (navigator.geolocation) { //支援 Geolocation API
+
+       navigator.geolocation.getCurrentPosition(showPosition,Go_error,Go_options); // watchPosition 的話覆寫會失效 定期獲得現在的位置(詳細函數)
+        
+    } else { 
+
+        alert("Geolocation is not supported by this browser");//不支援 Geolocation API
+    }
+
+}
+
+        function showPosition(position) { //位置物件 position
+            latitude.innerHTML = "Latitude(緯度): " + position.coords.latitude; //獲得位置的經度
+            longitude.innerHTML = "Longitude(經度): " + position.coords.longitude; //獲得位置的緯度
+            accuracy.innerHTML ="accuracy(誤差): "+position.coords.accuracy; //獲得位置的緯度誤差
+            document.getElementById("error").innerHTML=""; //重新讀取時清空 有錯誤的話跳到錯誤函數 
+            NowLatitude = position.coords.latitude; //現在經度
+            NowLongitude = position.coords.longitude; //現在緯度
+            console.log(position); //位置物件 position
+            console.log("Latitude(緯度): " +NowLatitude);
+            console.log("Longitude(經度): " +NowLongitude);
+
+            myMap(NowLatitude, NowLongitude); //帶參數  現在經度,現在緯度
+        
+        }
+        function Go_error(positionError){ // 錯誤函數CallBack函數 可以使用 位置物件 PositionError物件
+            var error=[ //錯誤陣列
+               position.message, //代碼0 不明錯誤 .message = 進一步的錯誤訊息
+               '不允許取得位置資訊', //代碼1 拒絕存取定位資訊
+               '取得資訊失敗', //代碼2 禁止存取定位資訊
+               '取得位置逾時' //代碼3 取得逾時
+            ];
+            document.getElementById("error").innerHTML=error[positionError.code]; //顯示錯誤代碼
+        }
+        var Go_options = {
+            enableHighAccuracy: true, //提高準密度
+            maximumAge        : 150000, // 定位限制的快取限制 15s 
+            timeout           : 27000 //逾時跳錯誤
+        };
+        
+        function myMap(x,y) { //帶參數  現在經度,現在緯度
+            var mapProp= { /* 設定maps 函數先寫好  */
+                center:new google.maps.LatLng(x,y), /* 經緯度 現在經度,現在緯度(必要參數)*/
+                zoom:17, /* 縮放區域  數字越大縮放越大 0~21 (必要參數)*/
+                mapTypeControl: true, //可以改變控制選單
+                mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU},  //控制選單變成下拉
+                mapTypeId:google.maps.MapTypeId.HYBRID //調整地圖種類
+            };
+            var One = new google.maps.LatLng(24.14917419805611,120.68505244068376); //一中緯經度
+            var HotPot = new google.maps.LatLng(24.146548355187182,120.68608345323037);  //葉亭緯經度
+            var School = new google.maps.LatLng(24.14939705271418,120.68123742975672); //太平國小緯經度
+            var Drink = new google.maps.LatLng(24.153099995246478,120.68455710370313); //春水堂緯經度
+            var Draw;
+            var map=new google.maps.Map(document.getElementById("googleMap"),mapProp); /*  畫在divㄝ 創建google map */
+            var marker = new google.maps.Marker({ /* 紅色箭頭 */
+                position:new google.maps.LatLng(x,y),  /*標記位置 經緯度 現在經度,現在緯度*/
+                map: map,/* 把箭頭化製到哪個地圖 */
+                title: '現在的地方', //  紅色箭頭 標題
+                draggable: true, /* 可拖曳 */
+                animation: google.maps.Animation.BOUNCE, /* 箭頭可跳動 */
+                icon:'img/blood3.png' /* 把紅色箭頭換icon */
+            
+            });
+            document.getElementById("Reset").addEventListener("click", Reset ); //Reset 函數重新讀取頁面
+            function Reset(){
+                window.location="index.html"; //重新載入頁面
+            }
+            document.getElementById("Draw").addEventListener("click", DrawPosition ); //增加button事件畫多邊形
+            function DrawPosition(){ // 畫多邊形
+                    Draw =new google.maps.Polygon({ //使用google Map畫多邊形
+                    path: [One, HotPot, School,Drink], //畫的位置
+                    strokeColor: "#0000FF", //畫線的顏色
+                    strokeOpacity: 0.8, //畫線的透明度
+                    strokeWeight: 2, //畫線的寬度
+                    fillColor: "#0000FF", //填滿的顏色
+                    fillOpacity: 0.4 //填滿的透明度
+                });
+                 Draw.setMap(map); //圖形設定好後畫在地圖div上
+            }
+            document.getElementById("Stop").addEventListener("click",StopMap); //Reset 函數重新讀取頁面
+            function StopMap(){
+                
+                    latitude.innerHTML = "Latitude(緯度): 停止偵測 " ;
+                    longitude.innerHTML = "Longitude(經度): 停止偵測 " ; //獲得位置的緯度
+                    accuracy.innerHTML ="accuracy(誤差): 停止偵測 "; //獲得位置的緯度誤差
+                    clearInterval(TimeMap); //停止非同步偵測
+            }
+            var a=-1;
+            google.maps.event.addListener(marker, 'dblclick', function() { // 增加marker dblclick事件 
+               
+                a=a*-1; //每按二下 改變正負
+                if(a>0){
+                    map.setZoom(20); //設定區域放大
+                }else{
+                    map.setZoom(17); //設定區域縮小
+                }
+            });
+
+            google.maps.event.addListener(map, 'click', function(event) { // 增加div click事件 event=maps物件
+                placeMarker(map, event.latLng); //要畫得div,按下去時的經緯度
+            });
+            
+            function placeMarker(map, location) { //要畫得div,按下去時的經緯度
+                console.log(" 緯度 "+location.lat() + " 經度 "+location.lng()); //點下去時 緯精度
+
+            
+                var marker = new google.maps.Marker({ //箭頭標記
+                    position: location,//必要參數 經緯度
+                    map: map //必要參數 要畫在哪個div
+                });
+
+                var infowindow= new google.maps.InfoWindow({ //資訊框                 
+                  content: 'Latitude: ' + location.lat() + // 內文: 按下去時的緯度
+                  '<br>Longitude: ' + location.lng() // 內文: 按下去時的經度
+                  });
+                var x = new google.maps.InfoWindow({  //資訊框          
+                        content:"你在一中商圈" //內文:一中裡
+                 });
+                if( ( location.lat() < 24.153099995246478 && location.lat() > 24.146548355187182 ) && (location.lng() < 120.68608345323037 && location.lng() > 120.68123742975672 )) { //介於緯精度之間的話是一中
+                     x.open(map,marker); //打開資訊框
+                    }else{ //其餘用座標表示
+                        infowindow.open(map,marker); //打開資訊框
+                      
+                    }
+                    //   x.open(map,marker); //打開資訊框
+                    // infowindow.open(map,marker); //打開資訊框
+
+               
+            }
+
+          
+        }
+      
+        /* 以下是多重標記 */
+        var map;
+        var markers = []; //空陣列用來存標記 一個個push
+        var position = [ //地圖標記的經緯度
+        {label:'A',lat:25.0336962,lng:121.5643673},
+        {label:'B',lat:25.0333698,lng:121.5641564},
+        {label:'C',lat:25.033899,lng:121.564329},
+        {label:'D',lat:25.0338407,lng:121.5645269},
+        {label:'E',lat:25.0336377,lng:121.5645727}
+        ];
+
+        function initMap() { //初始化
+            map = new google.maps.Map(document.getElementById('googleMap'), {  /*  畫在divㄝ 創建google map */
+                zoom: 19, //必要參數
+                center: { //必要參數
+                    lat: 25.0336962,
+                    lng: 121.5643673
+                }
+            });
+
+                for (var i = 0; i < position.length; i++) {
+                    addMarker(i); //i = 陣列元素的順序 一個個push
+                }
+            }
+
+                function addMarker(e) { //做marker紅色箭頭 e = 陣列元素的順序
+                markers[e] = new google.maps.Marker({ /* 座新箭頭 */
+                    position: { // 新箭頭位置
+                        lat: position[e].lat, /* 上面陣列裝著經度 key:value */
+                        lng: position[e].lng /* 上面陣列裝著緯度 key:value */
+                    },
+                    map: map,  /* 把箭頭化製到哪個地圖 */
+                    label: position[e].label //陣列的key 對應的value e = 陣列元素的順序
+                });
+            }
+        </script>
+        
+        <script  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjwNn8Emt2ZR0uUXNnbe4eBjk2CO-scJI&callback=myMap"></script> <!-- 自己從google API 拿到 -->
+  </body>
+</html>
