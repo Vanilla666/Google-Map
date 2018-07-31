@@ -26,4 +26,5 @@ icon 則是可以換紅色箭頭的樣式</br>
 按下後重新讀取頁面 = onload
 <h4>功能:畫圖形</h4>
 按下後畫出我覺得的一中街
-
+Visit [Daring Fireball][] for more information.
+[Daring Fireball]: http://daringfireball.net/
